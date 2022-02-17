@@ -9,9 +9,3 @@
 * [Markdown 编写规范](./markdown.md)
 * [sass编码规范](./sass.md)
 * [Vue开发规范](./vue.md)
-
-## 版权
-
-![Creative Commons License](http://i.creativecommons.org/l/by/4.0/88x31.png)
-
-[Creative Commons Attribution 4.0 International License](http://creativecommons.org/licenses/by/4.0/)
