@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI 辅助前端开发实战分享</title>
+    <!-- 引入 Reveal.js 基础样式 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.css">
+    <!-- 引入 Reveal.js 浅色白底主题 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/theme/white.css" id="theme">
+    
+    <style>
+        /* ================= 核心风格定义 ================= */
+        :root {
+            --primary: #0066FF; /* 科技蓝 */
+            --primary-light: #EBF4FF;
+            --text-dark: #1A1F36;
+            --text-muted: #64748B;
+            --bg-gray: #F8FAFC;
+            --border: #E2E8F0;
+            --accent-orange: #F59E0B;
+            --accent-green: #10B981;
+            --accent-red: #EF4444;
+        }
+
+        .reveal {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", sans-serif;
+            color: var(--text-dark);
+            background-color: #ffffff;
+        }
+
+        /* 解决显示不全和对其问题：重置默认 padding，禁用自带强居中带来的错位 */
+        .reveal .slides section {
+            text-align: left;
+            padding: 40px 60px;
+            box-sizing: border-box;
+            height: 100%;
+        }
+
+        /* 强制垂直+水平居中的特定页面（如封面、标题页） */
+        .center-screen {
+            display: flex !important;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            height: 100% !important;
+        }
+
+        /* ================= 排版与字体 ================= */
+        .reveal h1, .reveal h2, .reveal h3, .reveal h4 {
+            color: var(--text-dark);
+            font-family: inherit;
+            font-weight: 700;
+            text-transform: none;
+            letter-spacing: 0;
+            margin: 0;
+            line-height: 1.3;
+        }
+
+        .reveal h1 { font-size: 2.8em; margin-bottom: 0.2em; color: var(--primary); }
+        .reveal h2 { 
+            font-size: 1.8em; 
+            margin-bottom: 1em; 
+            padding-bottom: 10px;
+            border-bottom: 3px solid var(--primary);
+            display: inline-block;
+        }
+        .reveal h3 { font-size: 1.4em; color: var(--primary); margin-bottom: 0.6em; }
+        .reveal h4 { font-size: 1.1em; color: var(--text-dark); margin-bottom: 0.4em; }
+
+        .reveal p, .reveal li {
+            font-size: 0.85em;
+            line-height: 1.6;
+            color: var(--text-dark);
+        }
+
+        .reveal ul { display: block; margin-left: 20px; }
+        .reveal li { margin-bottom: 8px; }
+
+        /* 高亮与辅助色 */
+        .highlight { color: var(--primary); font-weight: 600; }
+        .muted { color: var(--text-muted); font-size: 0.9em; }
+
+        /* ================= 布局 ================= */
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; width: 100%; align-items: stretch; height: 100%; }
+        .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 30px; width: 100%; }
+
+        /* 卡片容器（用于分块信息） */
+        .card {
+            background-color: var(--bg-gray);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            position: relative;
+        }
+        .card.active {
+            border-top: 4px solid var(--primary);
+            background-color: #fff;
+            box-shadow: 0 10px 15px -3px rgba(0, 102, 255, 0.1);
+        }
+
+        .card-header {
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px dashed var(--border);
+        }
+
+        /* 强调块 */
+        .callout {
+            margin-top: 20px;
+            padding: 15px 20px;
+            background-color: var(--primary-light);
+            border-left: 4px solid var(--primary);
+            border-radius: 4px;
+        }
+        .callout.warning {
+            background-color: #FEF3C7;
+            border-left-color: var(--accent-orange);
+        }
+        .callout.danger {
+            background-color: #FEE2E2;
+            border-left-color: var(--accent-red);
+        }
+        .callout p { margin: 0; font-size: 0.9em; }
+
+        /* 小标签 */
+        .tag {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 0.6em;
+            font-weight: 600;
+            background-color: var(--border);
+            color: var(--text-muted);
+            margin-bottom: 15px;
+        }
+        .tag-blue { background-color: var(--primary-light); color: var(--primary); }
+        .tag-red { background-color: #FEE2E2; color: var(--accent-red); }
+
+        /* 留出位置的占位符（供之后传图用） */
+        .image-placeholder {
+            width: 100%;
+            height: 280px;
+            background-color: var(--bg-gray);
+            border: 2px dashed var(--border);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-muted);
+            font-size: 1.2em;
+            margin: 20px 0;
+        }
+
+        /* 首字母大修饰 */
+        .big-number {
+            font-size: 4em;
+            color: var(--primary-light);
+            font-weight: 900;
+            line-height: 1;
+            margin-bottom: -20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* 横向目录盒 */
+        .part-box {
+            background: #fff;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+            position: relative;
+            overflow: hidden;
+            width: 250px;
+        }
+        .part-box .part-num { font-size: 1.2em; font-weight: 900; color: var(--primary); margin-bottom: 10px; }
+        .part-box .part-title { font-size: 0.9em; font-weight: 600; color: var(--text-dark); }
+        .part-box::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 4px; background: var(--border); }
+        .part-box:nth-child(1)::after { background: var(--primary); }
+        .part-box:nth-child(2)::after { background: var(--accent-orange); }
+        .part-box:nth-child(3)::after { background: var(--accent-green); }
+
+        /* Part 章节封面分离两栏 */
+        .chapter-split { display: flex; height: 100%; width: 100%; align-items: center; }
+        .chapter-left { flex: 0 0 45%; padding-right: 40px; border-right: 1px solid var(--border); }
+        .chapter-right { flex: 1; padding-left: 60px; }
+        .chapter-right ul.sub-toc { list-style: none; margin: 0; padding: 0; }
+        .chapter-right ul.sub-toc li { font-size: 1.1em; color: var(--text-muted); margin-bottom: 20px; display: flex; align-items: center; }
+        .chapter-right ul.sub-toc li::before {
+            content: '0' counter(subtoc);
+            counter-increment: subtoc;
+            color: var(--primary-light);
+            font-weight: 900;
+            font-size: 1.5em;
+            margin-right: 15px;
+            min-width: 40px;
+        }
+        .chapter-right ul.sub-toc { counter-reset: subtoc; }
+
+        .reveal .progress { color: var(--primary); }
+    </style>
+</head>
+<body>
+    <div class="reveal">
+        <div class="slides">
+
+            <!-- ================= 开场 ================= -->
+            
+            <!-- 1. 封面 -->
+            <section class="center-screen">
+                <div style="position: absolute; top: 0; left: 0; right: 0; height: 6px; background: linear-gradient(90deg, #0066FF, #00D4FF);"></div>
+                <h1 style="font-size: 3.2em;">AI 辅助前端开发</h1>
+                <h2 style="border: none; margin-top: 0; font-size: 2.2em; color: var(--text-dark);">实战分享</h2>
+                <p style="font-size: 1.2em; color: var(--text-muted); margin-top: 15px; letter-spacing: 0.1em;">工程落地版 · 从认知打通到工作流重塑</p>
+                
+                <div style="margin-top: 80px; font-size: 1em; color: var(--text-dark); display: flex; gap: 40px; align-items: center; justify-content: center;">
+                    <div><strong>主讲人：</strong> 张兵涛 (前端开发工程师)</div>
+                    <div style="width: 1px; height: 20px; background: var(--border);"></div>
+                    <div>2026 · 内部培训</div>
+                </div>
+            </section>
+
+            <!-- 2. 作者介绍 -->
+            <section>
+                <h2>作者介绍</h2>
+                <div class="grid-2" style="margin-top: 30px;">
+                    <div>
+                        <h3 style="font-size: 1.8em; margin-bottom: 5px;">张兵涛</h3>
+                        <p class="muted" style="margin-top: 0;">前端开发工程师</p>
+                        
+                        <div class="card" style="margin-top: 30px; background: #fff; border-left: 4px solid var(--primary); border-radius: 0; box-shadow: none; padding: 15px 20px;">
+                            <p class="muted" style="margin: 0; font-style: italic;">
+                                [ 背景简介留板位 ] <br><br>
+                                工作年限 / 负责业务线 / 核心技术栈<br>
+                                ——请手动填写并替换此处文本
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 3. 总目录 -->
+            <section class="center-screen">
+                <h2 style="border: none; margin-bottom: 50px; font-size: 2.4em;">目录大纲</h2>
+                
+                <!-- 精细化 3 大类排版 -->
+                <div style="display: flex; gap: 40px; justify-content: center; width: 100%;">
+                    <div class="part-box">
+                        <div class="part-num">Part 01</div>
+                        <div class="part-title" style="font-size:1.1em; line-height:1.4;">认知与武器库</div>
+                        <p class="muted" style="font-size:0.7em; margin-top:10px;">解决“是什么”与“用什么”</p>
+                    </div>
+                    <div class="part-box">
+                        <div class="part-num" style="color:var(--accent-orange)">Part 02</div>
+                        <div class="part-title" style="font-size:1.1em; line-height:1.4;">工作流重塑与实操</div>
+                        <p class="muted" style="font-size:0.7em; margin-top:10px;">解决“怎么用”的痛点</p>
+                    </div>
+                    <div class="part-box">
+                        <div class="part-num" style="color:var(--accent-green)">Part 03</div>
+                        <div class="part-title" style="font-size:1.1em; line-height:1.4;">避坑指南与沉淀</div>
+                        <p class="muted" style="font-size:0.7em; margin-top:10px;">防踩坑与团队落地发力</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 4. 开场引子 -->
+            <section>
+                <h2>案例引入：5 分钟感受 AI 能力边界</h2>
+                <div class="grid-2">
+                    <div>
+                        <p class="muted">用一个真实的系统页面研发流程作为引子：</p>
+                        <div style="margin-top: 20px;">
+                            <div style="padding:10px 0; border-bottom:1px solid #eee;"><strong>输入：</strong> 🎨 Figma 设计稿结构图</div>
+                            <div style="padding:10px 0; border-bottom:1px solid #eee;"><strong>上下文：</strong> 📄 ApiFox 接口文档契约</div>
+                            <div style="padding:10px 0;"><strong>输出：</strong> 💻 AI + 人 直出的高还原度成品页面</div>
+                        </div>
+                        <div class="callout" style="margin-top:30px;">
+                            <p><strong>核心观点：</strong>先确认设计方案与接口契约。<br><span class="highlight">AI 是执行高手，但整体方向必须由人来定。</span></p>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="image-placeholder">
+                            [请在此处插入：你的 Figma → ApiFox → 成品的流程截图]
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- =================PART 01================= -->
+            <section>
+                <div class="chapter-split">
+                    <div class="chapter-left">
+                        <div style="font-size: 5em; font-weight: 900; color: var(--primary); line-height: 1; margin-bottom: 10px;">01</div>
+                        <h2 style="border: none; font-size: 2em; margin-bottom: 15px;">认知与武器库</h2>
+                        <div style="width: 50px; height: 5px; background: var(--primary);"></div>
+                    </div>
+                    <div class="chapter-right">
+                        <ul class="sub-toc">
+                            <li>工具演化与本质</li>
+                            <li>能力边界与适用场景</li>
+                            <li>三大核心抓手：RAG / Skill / Workflow</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 1.1 -->
+            <section>
+                <h2>01. 工具演化与本质</h2>
+                <div class="grid-3" style="margin-top: 20px;">
+                    <div class="card">
+                        <span class="tag">补全式</span>
+                        <h4 style="margin:5px 0 15px;">Copilot (打字员)</h4>
+                        <p class="muted">内联代码语法补全极快，但缺乏全局架构感知。适用于低门槛的代码片段补全。</p>
+                        <div class="image-placeholder" style="height: 150px; font-size:0.9em;">[插图位：贴一小段 Copilot 灰字联想截图]</div>
+                    </div>
+                    <div class="card">
+                        <span class="tag" style="background:#FFF3E0; color:#E65100;">会话式</span>
+                        <h4 style="margin:5px 0 15px;">ChatGPT (外包顾问)</h4>
+                        <p class="muted">强交互解题，但上下文极易断裂，需手动频繁 C+V 搬运代码集成长篇项目。</p>
+                        <div class="image-placeholder" style="height: 150px; font-size:0.9em;">[插图位：贴 Web 端对话复制截图]</div>
+                    </div>
+                    <div class="card active">
+                        <span class="tag tag-blue">工程化</span>
+                        <h4 style="margin:5px 0 15px; color:var(--primary);">Antigravity (工程管家)</h4>
+                        <p class="muted">具备项目级上下文关联，支持多文件重构及 <strong>Chat → Edits → Commit</strong> 全闭环端到端操作。</p>
+                        <div class="image-placeholder" style="height: 150px; font-size:0.9em;">[插图位：贴 Antigravity Cmd+k 编辑面板截图]</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 1.2 -->
+            <section>
+                <h2>02. 能力边界与适用场景</h2>
+                <div class="grid-2">
+                    <div class="card" style="border-top-color: var(--primary);">
+                        <div class="card-header"><h4 style="color: var(--primary); margin: 0;">✅ 放权给 AI (脏活累活)</h4></div>
+                        <ul>
+                            <li><span class="highlight">骨架搭建：</span>根据 Figma 图层反向堆页面和写样式</li>
+                            <li><span class="highlight">批量平替：</span>组件库迁移、JS一键转TS、API接口替换</li>
+                            <li><span class="highlight">日志查错：</span>一长串控制台报错的调用栈分析</li>
+                            <li><span class="highlight">文档辅助：</span>写注释、边界用例枚举、正则</li>
+                        </ul>
+                    </div>
+                    <div class="card" style="border-top: 4px solid var(--accent-orange); background-color: #fff;">
+                        <div class="card-header"><h4 style="color: var(--accent-orange); margin: 0;">⚠️ 死抓人工主导 (核心卡口)</h4></div>
+                        <ul>
+                            <li><span class="highlight">需求把脉：</span>项目该做成什么样的人能判断，AI听不懂业务隐喻</li>
+                            <li><span class="highlight">底层架构：</span>核心组件抽象方案与选型拍板</li>
+                        </ul>
+                        <div class="callout warning" style="margin-top:20px; padding:10px; font-size:0.8em;">
+                            <strong>防沉迷准则：</strong> 当 AI 15 分钟无产出时 → 立刻切回人工接管。
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 1.3 -->
+            <section>
+                <h2>03. 三大核心抓手</h2>
+                <p class="muted" style="margin-bottom: 20px;">掌握它们，AI 就从“野生工具”变成“规范资产”。</p>
+                
+                <div class="card active" style="margin-bottom: 20px;">
+                    <h4>1. RAG (提供项目事实背景)</h4>
+                    <p class="muted">利用 <code>@文件</code> 或接入接口平台文档，让 AI 在改代码前“读懂”当前目录业务契约与技术规范。</p>
+                </div>
+                
+                <div class="card" style="margin-bottom: 20px; border-left: 4px solid var(--primary);">
+                    <h4>2. Skill (规范指令锁死)</h4>
+                    <p class="muted">把团队“不要滥用any、必须用Element样式”的经验固化成一段系统指令（Prompt），强制 AI 遵守。</p>
+                </div>
+                
+                <div class="card" style="border-left: 4px solid var(--accent-green);">
+                    <h4>3. Workflow (标准流程推进)</h4>
+                    <p class="muted">编排人机协作链路序列：“需求理解 -> 写测试纲领 -> 依据测试纲领写业务”。按流水线执行。</p>
+                </div>
+            </section>
+
+
+            <!-- =================PART 02================= -->
+            <section>
+                <div class="chapter-split">
+                    <div class="chapter-left">
+                        <div style="font-size: 5em; font-weight: 900; color: var(--accent-orange); line-height: 1; margin-bottom: 10px;">02</div>
+                        <h2 style="border: none; font-size: 2em; margin-bottom: 15px;">工作流重塑与实操</h2>
+                        <div style="width: 50px; height: 5px; background: var(--accent-orange);"></div>
+                    </div>
+                    <div class="chapter-right">
+                        <ul class="sub-toc">
+                            <li>旧习惯 vs 新流程对比</li>
+                            <li>实战案例 A：从零建页演示</li>
+                            <li>实战案例 B：存量庞大组件重构</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 2.1 -->
+            <section>
+                <h2>01. 旧习惯 vs 新型 6 步工作流</h2>
+                <div class="grid-2">
+                    <div class="card" style="background:#F1F5F9; border:none;">
+                        <span class="tag">过去痛点</span>
+                        <h4 style="margin-top: 5px; color: var(--text-muted);">口述需求，边猜边写</h4>
+                        <ul style="color: var(--text-muted); font-size:0.9em; line-height: 1.8;">
+                            <li>理解偏差导致的大规模二次返工</li>
+                            <li>代码样板手搓耗时长、重复率高</li>
+                            <li>联调看心情：接口文档不同步，全是 <code>console.log</code> 查错</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="card" style="border-top-color: var(--primary);">
+                        <span class="tag tag-blue">新范式引擎</span>
+                        <h4 style="margin-top: 5px; color: var(--primary);">AI 增强型 6 步推进法</h4>
+                        <ol style="font-size:0.9em; line-height: 1.8;">
+                            <li><strong>人工主导：</strong> 需求与方案架构设计</li>
+                            <li><strong>团队对齐：</strong> 确认技术实施方案再动工</li>
+                            <li><strong>颗粒拆解：</strong> 精细化 Task 任务拆解 (极易跳过)</li>
+                            <li><strong class="highlight">AI 编码：</strong> 一 Task 一 commit，即插即验证</li>
+                            <li><strong>即时联调：</strong> MCP 直接拉取最新 Swagger 结构对接</li>
+                            <li><strong>人工审查：</strong> 严肃的 Code Review 及质量把控</li>
+                        </ol>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 2.2 -->
+            <section>
+                <h2>02. 实战案例 A：从零建页演示</h2>
+                <p class="muted">从一份 Figma 和一份 ApiFox Schema 开始：</p>
+                <div class="grid-2">
+                    <div>
+                        <div style="padding-bottom: 15px;">
+                            <span class="tag tag-blue">Step 1</span> <strong>需求喂入</strong><br>
+                            <span class="muted" style="font-size:0.9em;">告诉 AI 业务实体是什么，引入页面结构大纲。</span>
+                        </div>
+                        <div style="padding-bottom: 15px;">
+                            <span class="tag tag-blue">Step 2</span> <strong>抽取骨架</strong><br>
+                            <span class="muted" style="font-size:0.9em;">让 AI 基于 UI 稿结构，搭出前端基础组件树。</span>
+                        </div>
+                        <div style="padding-bottom: 15px;">
+                            <span class="tag tag-blue">Step 3</span> <strong>获取契约并直连</strong><br>
+                            <span class="muted" style="font-size:0.9em;">RAG 输入 API 描述，一次性写清接口返回体拦截与异常气泡。</span>
+                        </div>
+                        <div class="callout" style="padding:10px;">
+                            <p><strong>爽点：</strong> 前端无需等服务器发版，靠 Schema 就完成了高拟真联调闭环。</p>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="image-placeholder" style="height: 380px;">
+                            [请在此处插入：案例 A 的演示图 / 动图或交互截图示例]
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 2.3 -->
+            <section>
+                <h2>03. 实战案例 B：存量组件安全重构</h2>
+                <div class="grid-2">
+                    <div>
+                        <p class="muted">如何干掉一个历史欠账严重的 500 行组件？</p>
+                        <ol style="margin-top: 20px; line-height: 2;">
+                            <li><strong>全盘拉取：</strong> 先让 AI 扫读整个上下文，生成现有组件树依赖图。</li>
+                            <li><strong>重构建议：</strong> 让 AI 先出“切分计划” <strong class="highlight">【人工评审该计划】</strong></li>
+                            <li><strong>断点续传：</strong> AI 逐块（State、View、API）单独生成切块代码。</li>
+                            <li><strong>边界护航：</strong> AI 自动补齐极端的边界情况用例验证。</li>
+                        </ol>
+                    </div>
+                    <div>
+                        <div class="image-placeholder" style="height: 350px;">
+                            [请在此处插入：重构前后代码对比图，或聊天窗口的“拆分计划”截图]
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+
+            <!-- =================PART 03================= -->
+            <section>
+                <div class="chapter-split">
+                    <div class="chapter-left">
+                        <div style="font-size: 5em; font-weight: 900; color: var(--accent-green); line-height: 1; margin-bottom: 10px;">03</div>
+                        <h2 style="border: none; font-size: 2em; margin-bottom: 15px;">避坑指南与沉淀</h2>
+                        <div style="width: 50px; height: 5px; background: var(--accent-green);"></div>
+                    </div>
+                    <div class="chapter-right">
+                        <ul class="sub-toc">
+                            <li>致命操作避坑</li>
+                            <li>架构与控制权陷阱</li>
+                            <li>从个人提效走向团队落地</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 3.1 -->
+            <section>
+                <h2>01. 致命操作避坑 (Top 3 翻车重灾区)</h2>
+                <div class="grid-3" style="margin-top:20px;">
+                    <div class="card" style="border-top-color: var(--accent-red);">
+                        <h4>🔥 需求不清就撒手</h4>
+                        <p class="muted">需求文档没想透，就让 AI 写。<strong>垃圾进必然垃圾出</strong>。AI 给错了方向导致推翻重来的隐形成本极其高昂。</p>
+                        <div class="image-placeholder" style="height: 100px;">[反向案例图]</div>
+                    </div>
+                    <div class="card" style="border-top-color: var(--accent-orange);">
+                        <h4>🍔 一块塞太多任务</h4>
+                        <p class="muted">一次对话指令给 AI 派发 10 个修改点任务，极易造成上下文被截断和幻觉代码插入，颗粒度一定要细。</p>
+                        <div class="image-placeholder" style="height: 100px;">[超编的指令截图]</div>
+                    </div>
+                    <div class="card" style="border-top-color: var(--primary);">
+                        <h4>⚠️ 无卡口的盲目自信</h4>
+                        <p class="muted">对 AI 输出不做验证直接 Git Commit。必须有严密的人工 Code Review：边界用例是否安全、可维护性是否恶化。</p>
+                        <div class="image-placeholder" style="height: 100px;">[致命报错事故图]</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 3.2 -->
+            <section>
+                <h2>02. 架构与控制权陷阱</h2>
+                <div class="grid-2">
+                    <div>
+                        <p style="font-size: 1.2em; border-left: 4px solid var(--accent-red); padding-left: 15px;">
+                            你的项目控制权正在被悄然“剥夺”吗？
+                        </p>
+                        <ul style="margin-top: 20px; line-height: 1.8;">
+                            <li><strong>AI 的万金油综合症：</strong> 它倾向拿市面上最时髦或通用套路架构直接套你代码，且无视当前项目的历史负债。</li>
+                            <li><strong>黑盒代码积累：</strong> 一直用 AI 开发却无人懂其原理的组件连跑 3 个月后，突然宕机却无人能看懂它写的魔法数字。</li>
+                        </ul>
+                        <div class="callout warning" style="margin-top: 30px;">
+                            <p><strong>架构由人主导：</strong> 把可维护性放在与正确性同等位置审查，哪怕是用 AI 生成的代码，你也必须“说得出每一行的理由”！</p>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="image-placeholder" style="height: 350px;">
+                            [请在此处插入：一个典型的复杂乱码/黑盒逻辑 吐槽示例图]
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 3.3 -->
+            <section>
+                <h2>03. 从个人摸索走向团队资产</h2>
+                <div class="grid-2">
+                    <div class="card">
+                        <h4>摒弃“闭门造车”</h4>
+                        <p class="muted">一个好用的 Prompt 是被无数坑喂出来的。如果不沉淀到项目的 <code>.rules</code> 库中，其他同事还将再遭受一遍痛苦。</p>
+                        <div class="image-placeholder" style="height: 200px;">
+                            [插入：.rules 规范约束或团队沉淀系统库截图]
+                        </div>
+                    </div>
+                    
+                    <div style="padding-left: 20px;">
+                        <h4 style="margin-bottom: 20px;">推进落地方法论：</h4>
+                        <ol style="line-height: 2;">
+                            <li><strong>个人破冰：</strong> 自己先跑通闭环工作链路。</li>
+                            <li><strong>提炼精华：</strong> 把成功解法抽为 2-3 个标准化 <code>Workflow</code> 和 <code>Skill</code>。</li>
+                            <li><strong>星火分享：</strong> 只发给感兴趣的人先行测试，不要一锅端强制落地。</li>
+                            <li><strong>小步快跑：</strong> 根据业务的反馈，半年时间团队内自发跃迁。</li>
+                        </ol>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ================= 结尾 ================= -->
+            <section class="center-screen">
+                <h1 style="font-size: 4em; color: var(--primary);">Q & A</h1>
+                <p style="font-size: 1.5em; color: var(--text-dark); margin-top: 10px;">感谢倾听，欢迎探讨！</p>
+                
+                <div style="margin-top: 50px; display: flex; gap: 30px; color: var(--text-muted); font-size: 0.9em;">
+                    <div style="text-align:center;">
+                        <div style="font-size:2em; margin-bottom:5px;">🧠</div>
+                        共识认知边界
+                    </div>
+                    <div style="text-align:center;">
+                        <div style="font-size:2em; margin-bottom:5px;">🛠️</div>
+                        重塑六步流程
+                    </div>
+                    <div style="text-align:center;">
+                        <div style="font-size:2em; margin-bottom:5px;">🚀</div>
+                        形成团队武器
+                    </div>
+                </div>
+            </section>
+
+        </div>
+    </div>
+
+    <!-- 引入 Reveal.js 脚本 -->
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
+    <script>
+        Reveal.initialize({
+            hash: true,
+            slideNumber: 'c/t',    
+            center: false,         
+            width: 1280,           
+            height: 720,
+            margin: 0.1,    /* 修改以适应屏幕，防切割 */
+            transition: 'slide'    
+        });
+    </script>
+</body>
+</html>
